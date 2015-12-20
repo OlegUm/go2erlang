@@ -6,7 +6,11 @@
 
 start(_Type, _Args) ->
     Dispatch = cowboy_router:compile([
-        {'_', [{"/", index_handler, []}]}
+        {'_', [	
+		{"/user/create", user_add_handler, []},
+		{"/", index_handler, []},
+		{'_', error404_handler, []}
+	]}
     ]),
     {ok, _} = cowboy:start_http(my_http_listener, 100, [{port, 8080}],
         [{env, [{dispatch, Dispatch}]}]

@@ -1,0 +1,10 @@
+{% extends "body.dtl" %}
+
+
+{% block content %}
+    <form method="POST" action="create"> 
+        <p>Email: <input type="email" name="email"></p>
+        <p>Name: <input type="text" name="name"></p>
+        <p><input type="submit" value="Enter"></p>
+    </form>
+{% endblock %}

@@ -1,0 +1,4 @@
+{% extends "body.dtl" %}
+{% block content %}
+    <p> Error-404!</p>
+{% endblock %}
