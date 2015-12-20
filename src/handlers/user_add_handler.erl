@@ -44,8 +44,7 @@ create_user(Req, State) ->
 		%% для этого куска кода есть менее красивое но более очевидное решение 
 		%% см. http://stackoverflow.com/questions/16053870/erlang-proplistget-value-2-or-pattern-matching
 		%% Name = proplists:get_value(<<"name">>, PostVals),
-		%% Email = proplists:get_value(<<"email">>, PostVals),
-		[Email, Name] = [ V || Key <- [<<"email">>,<<"name">>], {K, V} <- PostVals, K =:= Key ],
-		io:format("Name/Email = ~p~p~p~n",[Name, "/", Email]),
+		%% Email = proplists:get_value(<<"email">>, PostVals),	 
+		users:add([ V || Key <- [<<"email">>,<<"name">>], {K, V} <- PostVals, K =:= Key ]),
 
 	{true, Req2, State}.
