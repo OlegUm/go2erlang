@@ -2,7 +2,7 @@
 
 
 {% block content %}
-    <form method="POST" action="create"> 
+    <form method="POST"> 
         <p>Email: <input type="email" name="email"></p>
         <p>Name: <input type="text" name="name"></p>
         <p><input type="submit" value="Enter"></p>

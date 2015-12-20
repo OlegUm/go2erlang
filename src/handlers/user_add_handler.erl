@@ -9,7 +9,6 @@
 
 
 init(Req, Opts) ->
-	io:format("Init User_add_handler~n"),
 	{cowboy_rest, Req, Opts}.
 
 
