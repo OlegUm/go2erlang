@@ -31,11 +31,12 @@ add([Email,Name]) ->
 		%% Добавим запись в базу
 		case add_bd([Email,Name,Password]) of
 			{atomic,{atomic,ok}} -> 
-				%% Отсылаем mail		
+				%% Отсылаем mail
+				[Pass_string]=io_lib:format("~p",[Password]),		
 				Email_body = unicode:characters_to_binary([
 					<<"Subject: Ваш пароль \r\nFrom: Test server <test@test.com> \r\nTo:"/utf8>>, Name, 
 					<<"<"/utf8>>, Email, 
-					<<"> r\n\Content-Type: text/plain;\r\n\t charset=utf-8 \r\n\r\n Ваш пароль = "/utf8>>,
+					<<"> \r\nContent-Type: text/plain;\r\n\t charset=utf-8 \r\n\r\n Ваш пароль = "/utf8>>,
 					Pass_string
 				], unicode, utf8),
 			  e_mail:send({<<"test@test.com">>, [<<"olan-ol@yandex.ru">>],Email_body}),
