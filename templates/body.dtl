@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>  
+    <meta charset="utf-8" />
+    <title>Webserver</title>
+</head>
+<body>
+
+{% block header %} <p>---header---</p> {% endblock %}
+{% block content %} {% endblock %}
+{% block footer %} <p>---footer---</p> {% endblock %}
+
+</body>
+</html>
