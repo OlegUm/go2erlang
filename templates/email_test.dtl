@@ -1,0 +1,4 @@
+{% extends "email_body.dtl" %}
+{% block content %}
+{{email_body}}
+{% endblock %}
