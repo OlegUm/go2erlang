@@ -8,6 +8,7 @@ start(_Type, _Args) ->
     Dispatch = cowboy_router:compile([
         {'_', [	
 		{"/user/create", user_add_handler, []},
+		{"/user/:email", user_handler, []},
 		{"/", index_handler, []},
 		{'_', error404_handler, []}
 	]}
