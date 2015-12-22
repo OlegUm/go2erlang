@@ -1,0 +1,5 @@
+{% extends "body.dtl" %}
+{% block content %}
+    <p>Имя пользователя: {{name}}</p>
+    <p>E-mail: {{email}}</p>
+{% endblock %}

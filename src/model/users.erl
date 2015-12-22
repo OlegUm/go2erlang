@@ -30,8 +30,7 @@ add([Email,Name]) ->
 		
 		%% Добавим запись в базу
 		case add_bd([Email,Name,Password]) of
-			{atomic,{atomic,ok}} -> 
-				%% Отсылаем mail
+			{atomic,{atomic,ok}} -> %% Если пользователь новый - отсылаем mail
 				[Pass_string]=io_lib:format("~p",[Password]),		
 				Email_body = unicode:characters_to_binary([
 					<<"Subject: Ваш пароль \r\nFrom: Test server <test@test.com> \r\nTo:"/utf8>>, Name, 
