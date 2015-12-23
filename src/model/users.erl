@@ -44,6 +44,8 @@ add([Email,Name]) ->
 			{atomic,{already_exist,_}} -> {false, already_exist}
 		end.
 
+
+-spec( get([ Email::binary() ] ) -> not_exist | binary() ).
 get([Email]) ->
 	
 %% Поиск совпадения мейла 
