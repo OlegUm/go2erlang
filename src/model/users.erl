@@ -39,9 +39,9 @@ add([Email,Name]) ->
 					<<"> \r\nContent-Type: text/plain;\r\n\t charset=utf-8 \r\n\r\n Ваш пароль = "/utf8>>,
 					Pass_string
 				], unicode, utf8),
-			  e_mail:send({<<"test@test.com">>, [<<"olan-ol@yandex.ru">>],Email_body}),
-			ok;
-			{atomic,{already_exist,_}} -> already_exist
+			  	e_mail:send({<<"test@test.com">>, [<<"olan-ol@yandex.ru">>],Email_body}),
+				{ok, Email};
+			{atomic,{already_exist,_}} -> {false, already_exist}
 		end.
 
 get([Email]) ->

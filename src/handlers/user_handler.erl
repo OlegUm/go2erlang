@@ -24,11 +24,8 @@ allowed_methods(Req, State) ->
 
 %% открываем форму регистрации пользователя
  user(Req, State) ->
-		io:format("user handler ... ~n"),
 		Email=cowboy_req:binding(email, Req, "No email"),
-		io:format("email = ~p~n",[Email]),
 		User=users:get([Email]),
-		io:format("user/email = ~p~p~p~n",[User,"/",Email]),
 		{ok, Body} = user_dtl:render([{email,Email},{user,User}]),
 	{Body, Req, State}.
 
