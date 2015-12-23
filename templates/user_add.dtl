@@ -2,9 +2,15 @@
 
 
 {% block content %}
-    <form method="POST"> 
-        <p>Email: <input type="email" name="email"></p>
-        <p>Name: <input type="text" name="name"></p>
+    
+{% if already_exist  %}
+   <p>{{ already_exist }}</p>
+{% else %}
+    <form method="POST">      
+	<p>Email: <input type="email" name="email"></p>
+        <p>Name: <input type="text" name="name"> </p>
         <p><input type="submit" value="Enter"></p>
     </form>
+{% endif %}
+
 {% endblock %}

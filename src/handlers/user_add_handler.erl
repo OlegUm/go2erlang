@@ -51,6 +51,9 @@ create_user(Req, State) ->
 			      Path = <<"/user/">>,
 			      Path_and_mail = << Path/binary, Email/binary >>,
 			      {{true, Path_and_mail}, Req2, State};
-			{false, already_exist} -> {false, Req2, State} 
+			{false, already_exist} -> 
+			{ok, Body} = user_add_dtl:render([{already_exist, <<"Такой пользователь существует!"/utf8>>}]),
+      			Req3 = cowboy_req:set_resp_body(Body, Req2),
+			{false, Req3, State} 
 		end.
 	
