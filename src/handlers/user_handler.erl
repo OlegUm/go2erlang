@@ -2,10 +2,8 @@
 
 -export([init/2]).
 -export([content_types_provided/2]).
--export([content_types_accepted/2]).
 -export([allowed_methods/2]).
--export([create_user/2]).
--export([reg_form/2]).
+-export([user/2]).
 
 
 init(Req, Opts) ->
@@ -26,8 +24,12 @@ allowed_methods(Req, State) ->
 
 %% открываем форму регистрации пользователя
  user(Req, State) ->
-		io:format("user = ~p~n",[State]),
-		{ok, Body} = user_dtl:render([]),
+		io:format("user handler ... ~n"),
+		Email=cowboy_req:binding(email, Req, "No email"),
+		io:format("email = ~p~n",[Email]),
+		User=users:get([Email]),
+		io:format("user/email = ~p~p~p~n",[User,"/",Email]),
+		{ok, Body} = user_dtl:render([{email,Email},{user,User}]),
 	{Body, Req, State}.
 
 

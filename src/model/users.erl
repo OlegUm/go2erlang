@@ -9,6 +9,7 @@
 
 -export([	reset_all/0,
 		add/1,
+		get/1,
 		check_password/1
 	]).
 
@@ -43,6 +44,20 @@ add([Email,Name]) ->
 			{atomic,{already_exist,_}} -> already_exist
 		end.
 
+get([Email]) ->
+	
+%% Поиск совпадения мейла 
+MPw = fun(Ne) -> 
+        mnesia:select(user,ets:fun2ms(fun(#user{email=E,name=N,password=P}) when  E =:= Ne -> {E,N,P} end))
+    end,
+ 
+	{atomic,R} = mnesia:transaction(MPw,[Email]),
+        case R of
+          [] -> not_exist;
+          [{Email,User,_}] -> User
+        end.
+
+
 
 
 
@@ -54,7 +69,6 @@ check_password([Email,Password]) ->
 MPw = fun(Ne,Pw) -> 
         mnesia:select(user,ets:fun2ms(fun(#user{email=E,name=N,password=P}) when  E =:= Ne, P =:= Pw -> {E,N,P} end))
     end,
- 
 	{atomic,R} = mnesia:transaction(MPw,[Email,Password]),
         case R of
           [] -> not_exist;
