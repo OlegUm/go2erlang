@@ -22,7 +22,7 @@
 	]).
 
 
-%% Функция обнуления базы данных
+%% @doc Функция обнуления базы данных
 %% @spec( reset_all() -> {atomic,ok} ).
 -spec( reset_all() -> {atomic,ok} ).	
 reset_all()->
@@ -38,9 +38,9 @@ reset_all()->
 
 
 
-%% Добавление пользователя
-%%    @spec( add([ binary()] ) -> {false, already_exist} | {ok, binary()}  ).
-      -spec( add([ binary()] ) -> {false, already_exist} | {ok, binary()}  ).
+%% @doc Добавление пользователя
+%%    @spec( add(User::[ binary() ] ) -> {false, already_exist} | {ok, binary()}  ).
+      -spec( add(User::[ binary() ] ) -> {false, already_exist} | {ok, binary()}  ).
 add([Email,Name]) -> 
 
 		%% Сгенерим случайный числовой пароль
@@ -61,12 +61,13 @@ add([Email,Name]) ->
 			{atomic,{already_exist,_}} -> {false, already_exist}
 		end.
 
-%% @spec( get([ Email::binary() ] ) -> not_exist | binary() ).
-   -spec( get([ Email::binary() ] ) -> not_exist | binary() ).
+%% @doc Получить пользователя по его мейлу
+%% @spec( get(Email:: [ binary()] ) -> not_exist | binary() ).
+   -spec( get(Email:: [binary()] ) -> not_exist | binary() ).
 
 get([Email]) ->
 	
-%% Поиск совпадения мейла 
+%% @doc Поиск совпадения мейла 
 MPw = fun(Ne) -> 
         mnesia:select(user,ets:fun2ms(fun(#user{email=E,name=N,password=P}) when  E =:= Ne -> {E,N,P} end))
     end,
@@ -81,13 +82,13 @@ MPw = fun(Ne) ->
 
 
 
-%% Функция проверки пароля пользователя
+%% @doc Функция проверки пароля пользователя
 %% @spec(check_password([ binary() | string() ]) -> ok | not_exist).
    -spec(check_password([ binary() | string() ]) -> ok | not_exist).
 
 check_password([Email, Password]) ->
 	
-%% Поиск совпадения мейла и пароля
+%% @doc Поиск совпадения мейла и пароля
 MPw = fun(Ne,Pw) -> 
         mnesia:select(user,ets:fun2ms(fun(#user{email=E,name=N,password=P}) when  E =:= Ne, P =:= Pw -> {E,N,P} end))
     end,

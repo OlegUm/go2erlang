@@ -1,0 +1,4 @@
+%% encoding: UTF-8
+{application,go2erlang}.
+{modules,[e_mail,error404_handler,go2erlang_app,go2erlang_sup,index_handler,
+          user_add_handler,user_handler,users]}.
