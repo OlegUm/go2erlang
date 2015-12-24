@@ -1,3 +1,4 @@
--name go2erlang@127.0.0.1
+-sname go2erlang@oleg
 -setcookie go2erlang
 -heart
+-run edoc_run packages '[""]' '[{source_path, ["."]}, {dir, "documentation"}]' 

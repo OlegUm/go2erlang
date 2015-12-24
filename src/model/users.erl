@@ -1,8 +1,16 @@
+%% @doc Модуль работы с пользователями. Определяет функции добавления и удаления пользователей.
+%% В модуле используется БД Mnesia
+
+
 -module(users).
 -author("Oleg Um <olan-ol@yandex.ru").
 
 %% определение структуры БД пользователей
--record (user, {email, name, password}).
+-record (user, {email	::binary(),
+		name	::binary(), 
+		password::number() }).
+
+
 
 %% эта библиотека нужна для работы функции ets:fun2ms
 -include_lib("stdlib/include/ms_transform.hrl").
@@ -13,7 +21,10 @@
 		check_password/1
 	]).
 
-	
+
+%% Функция обнуления базы данных
+%% @spec( reset_all() -> {atomic,ok} ).
+-spec( reset_all() -> {atomic,ok} ).	
 reset_all()->
 	stopped=mnesia:stop(),
    	ok=mnesia:delete_schema([node()]),
@@ -23,7 +34,13 @@ reset_all()->
                            {disc_copies,[node()]},
                            {type,set}]).
 
+
+
+
+
 %% Добавление пользователя
+%%    @spec( add([ binary()] ) -> {false, already_exist} | {ok, binary()}  ).
+      -spec( add([ binary()] ) -> {false, already_exist} | {ok, binary()}  ).
 add([Email,Name]) -> 
 
 		%% Сгенерим случайный числовой пароль
@@ -44,8 +61,9 @@ add([Email,Name]) ->
 			{atomic,{already_exist,_}} -> {false, already_exist}
 		end.
 
+%% @spec( get([ Email::binary() ] ) -> not_exist | binary() ).
+   -spec( get([ Email::binary() ] ) -> not_exist | binary() ).
 
--spec( get([ Email::binary() ] ) -> not_exist | binary() ).
 get([Email]) ->
 	
 %% Поиск совпадения мейла 
@@ -64,8 +82,10 @@ MPw = fun(Ne) ->
 
 
 %% Функция проверки пароля пользователя
-%% -spec(check_passwor([Email::binary(), Password::string()]) -> ok | not_exist).
-check_password([Email,Password]) ->
+%% @spec(check_password([ binary() | string() ]) -> ok | not_exist).
+   -spec(check_password([ binary() | string() ]) -> ok | not_exist).
+
+check_password([Email, Password]) ->
 	
 %% Поиск совпадения мейла и пароля
 MPw = fun(Ne,Pw) -> 
