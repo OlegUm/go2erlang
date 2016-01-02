@@ -1,21 +1,9 @@
 %% @doc Модуль работы с пользователями. Определяет функции добавления и удаления пользователей.
 %% В модуле используется БД Mnesia
-%% Модуль организован как gen_server
 
 
 -module(users).
--behaviour(gen_server).
 -author("Oleg Um <olan-ol@yandex.ru").
-
-
-%% функции обратного вызова gen_server 
--export([init/1]).
--export([handle_call/3]).
--export([handle_cast/2]).
--export([handle_info/2]).
--export([terminate/2]).
--export([code_change/3]).
-
 
 %% определение структуры БД пользователей
 -record (user, {email	::binary(),
