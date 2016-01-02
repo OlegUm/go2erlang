@@ -1,5 +1,5 @@
 PROJECT = go2erlang
-DEPS = cowboy erlydtl gen_smtp epgsql eunit
+DEPS = cowboy erlydtl gen_smtp eunit
 LOCAL_DEPS = mnesia edoc
 dep_cowboy = git https://github.com/ninenines/cowboy master 
 

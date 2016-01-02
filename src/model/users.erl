@@ -16,17 +16,9 @@
 -export([terminate/2]).
 -export([code_change/3]).
 
+-export([start_link/0]).
 
-%% определение структуры БД пользователей
--record (user, {email	::binary(),
-		name	::binary(), 
-		password::number() }).
-
-
-
-%% эта библиотека нужна для работы функции ets:fun2ms
--include_lib("stdlib/include/ms_transform.hrl").
-
+%% экспорт функций API модуля
 -export([	reset_all/0,
 		add/1,
 		get/1,
@@ -34,10 +26,77 @@
 	]).
 
 
+%% определение структуры БД пользователей
+-record (user, {email	::binary(),
+		name	::binary(), 
+		password::number() }).
+
+-record(state, {
+}).
+
+
+
+%% эта библиотека нужна для работы функции ets:fun2ms
+-include_lib("stdlib/include/ms_transform.hrl").
+
+
+%% Передаем вызовы функций API модуля процессу 
+-spec start_link() -> {ok, pid()}.
+start_link() -> gen_server:start_link({local,?MODULE},?MODULE, [],[]).
+
+reset_all() -> gen_server:call(?MODULE, {reset_all}). %% Очищаем базу
+%% start() -> gen_server:call(?MODULE, {start}). %% Запускаем базу
+add(User) -> gen_server:call(?MODULE, {add,User}). %% Добавляем пользователя в базу
+get(Email) -> gen_server:call(?MODULE, {get,Email}). %% Получаем пользователя из базы по его мейлу
+check_password(Email_Password) -> gen_server:call(?MODULE, {get_user,Email_Password}). %% Проверяем соответствие мейла и пароля
+
+
+
+%% gen_server.
+
+init([]) ->
+	io:format("users:start([])~n"),
+	{ok, #state{}}.
+
+handle_call({reset_all}, _From, State) ->
+		Reply= reset_all_(),
+		{reply, Reply, State};
+handle_call({add,User}, _From, State) ->		
+		Reply= add_(User),
+		{reply, Reply, State};
+handle_call({get,Email}, _From, State) ->
+		Reply= get_(Email),
+		{reply, Reply, State};
+handle_call({check_password, Email_Password}, _From, State) ->
+		Reply= check_password_(Email_Password),
+		{reply, Reply, State}.
+
+
+handle_cast(_Msg, State) ->
+	{noreply, State}.
+
+handle_info(_Info, State) ->
+	{noreply, State}.
+
+terminate(_Reason, _State) ->
+	ok.
+
+code_change(_OldVsn, State, _Extra) ->
+	{ok, State}.
+
+
+
+
+
+
+
+
+
+
 %% @doc Функция обнуления базы данных
 %% @spec( reset_all() -> {atomic,ok} ).
--spec( reset_all() -> {atomic,ok} ).	
-reset_all()->
+-spec( reset_all_() -> {atomic,ok} ).	
+reset_all_()->
 	stopped=mnesia:stop(),
    	ok=mnesia:delete_schema([node()]),
     	ok=mnesia:create_schema([node()]),
@@ -52,8 +111,8 @@ reset_all()->
 
 %% @doc Добавление пользователя
 %%    @spec( add(User::[ binary() ] ) -> {false, already_exist} | {ok, binary()}  ).
-      -spec( add(User::[ binary() ] ) -> {false, already_exist} | {ok, binary()}  ).
-add([Email,Name]) -> 
+      -spec( add_(User::[ binary() ] ) -> {false, already_exist} | {ok, binary()}  ).
+add_([Email,Name]) -> 
 
 		%% Сгенерим случайный числовой пароль
 		Password=rand:uniform(100000),
@@ -75,9 +134,9 @@ add([Email,Name]) ->
 
 %% @doc Получить пользователя по его мейлу
 %% @spec( get(Email:: [ binary()] ) -> not_exist | binary() ).
-   -spec( get(Email:: [binary()] ) -> not_exist | binary() ).
+   -spec( get_(Email:: [binary()] ) -> not_exist | binary() ).
 
-get([Email]) ->
+get_([Email]) ->
 	
 %% @doc Поиск совпадения мейла 
 MPw = fun(Ne) -> 
@@ -98,7 +157,7 @@ MPw = fun(Ne) ->
 %% @spec(check_password([ binary() | number() ]) -> ok | not_exist).
    -spec(check_password([ binary() | number() ]) -> ok | not_exist).
 
-check_password([Email, Password]) ->
+check_password_([Email, Password]) ->
 	
 %% @doc Поиск совпадения мейла и пароля
 MPw = fun(Ne,Pw) -> 
