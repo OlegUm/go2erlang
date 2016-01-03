@@ -55,7 +55,6 @@ check_password(Email_Password) -> gen_server:call(?MODULE, {get_user,Email_Passw
 %% gen_server.
 
 init([]) ->
-	io:format("users:start([])~n"),
 	{ok, #state{}}.
 
 handle_call({reset_all}, _From, State) ->
