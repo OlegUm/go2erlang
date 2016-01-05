@@ -33,7 +33,6 @@ allowed_methods(Req, State) ->
 
 %% открываем форму регистрации пользователя
  reg_form(Req, State) ->
-		io:format("reg_form, State = ~p~n",[State]),
 		{ok, Body} = user_add_dtl:render([]),
 	{Body, Req, State}.
 

@@ -1,5 +1,5 @@
 %% @doc Модуль работы с пользователями. Определяет функции добавления и удаления пользователей.
-%% В модуле используется БД Mnesia
+%% В модуле используется БД PostgreSQL
 %% Модуль организован как gen_server
 
 
@@ -19,55 +19,34 @@
 -export([start_link/0]).
 
 %% экспорт функций API модуля
--export([	reset_all/0,
+-export([	
 		add/1,
-		get/1,
-		check_password/1
+		get/1
 	]).
 
 
-%% определение структуры БД пользователей
--record (user, {email	::binary(),
-		name	::binary(), 
-		password::number() }).
-
--record(state, {
-}).
-
-
-
-%% эта библиотека нужна для работы функции ets:fun2ms
--include_lib("stdlib/include/ms_transform.hrl").
-
-
-%% Передаем вызовы функций API модуля процессу 
+%% Передаем вызовы функций API модуля процессу  gen_server
 -spec start_link() -> {ok, pid()}.
 start_link() -> gen_server:start_link({local,?MODULE},?MODULE, [],[]).
 
-reset_all() -> gen_server:call(?MODULE, {reset_all}). %% Очищаем базу
-%% start() -> gen_server:call(?MODULE, {start}). %% Запускаем базу
 add(User) -> gen_server:call(?MODULE, {add,User}). %% Добавляем пользователя в базу
 get(Email) -> gen_server:call(?MODULE, {get,Email}). %% Получаем пользователя из базы по его мейлу
-check_password(Email_Password) -> gen_server:call(?MODULE, {get_user,Email_Password}). %% Проверяем соответствие мейла и пароля
-
 
 
 %% gen_server.
-
 init([]) ->
-	{ok, #state{}}.
+	{ok,C} = epgsql:connect("localhost", "oleg", "qwerty", [{database, "users_db"}, {timeout, 4000}]),
+	io:format("init. Connect = ~p~n",[C]),
+	{ok, C}.
 
-handle_call({reset_all}, _From, State) ->
-		Reply= reset_all_(),
-		{reply, Reply, State};
+%%handle_call({reset_all}, _From, State) ->
+%%		Reply= reset_all_(),
+%%		{reply, Reply, State};
 handle_call({add,User}, _From, State) ->		
-		Reply= add_(User),
+		Reply= add_(State ,User),
 		{reply, Reply, State};
 handle_call({get,Email}, _From, State) ->
-		Reply= get_(Email),
-		{reply, Reply, State};
-handle_call({check_password, Email_Password}, _From, State) ->
-		Reply= check_password_(Email_Password),
+		Reply= get_(State, Email),
 		{reply, Reply, State}.
 
 
@@ -85,40 +64,18 @@ code_change(_OldVsn, State, _Extra) ->
 
 
 
-
-
-
-
-
-
-
-%% @doc Функция обнуления базы данных
-%% @spec( reset_all() -> {atomic,ok} ).
--spec( reset_all_() -> {atomic,ok} ).	
-reset_all_()->
-	stopped=mnesia:stop(),
-   	ok=mnesia:delete_schema([node()]),
-    	ok=mnesia:create_schema([node()]),
-    	ok=mnesia:start(),
-	{atomic,ok}=mnesia:create_table(user,[{attributes,record_info(fields,user)},
-                           {disc_copies,[node()]},
-                           {type,set}]).
-
-
-
-
-
 %% @doc Добавление пользователя
 %%    @spec( add(User::[ binary() ] ) -> {false, already_exist} | {ok, binary()}  ).
-      -spec( add_(User::[ binary() ] ) -> {false, already_exist} | {ok, binary()}  ).
-add_([Email,Name]) -> 
+%%      -spec( add_(User::[ binary() ] ) -> {false, already_exist} | {ok, binary()}  ).
+add_(C,[Email,Name]) -> 
 
 		%% Сгенерим случайный числовой пароль
 		Password=rand:uniform(100000),
 		
 		%% Добавим запись в базу
-		case add_bd([Email,Name,Password]) of
-			{atomic,{atomic,ok}} -> %% Если пользователь новый - отсылаем mail
+		case add_bd(C,[Email,Name,Password]) of
+			{ok,_} -> 
+				%% Если пользователь новый - отсылаем mail
 				[Pass_string]=io_lib:format("~p",[Password]),		
 				Email_body = unicode:characters_to_binary([
 					<<"Subject: Ваш пароль \r\nFrom: Test server <test@test.com> \r\nTo:"/utf8>>, Name, 
@@ -126,74 +83,29 @@ add_([Email,Name]) ->
 					<<"> \r\nContent-Type: text/plain;\r\n\t charset=utf-8 \r\n\r\n Ваш пароль = "/utf8>>,
 					Pass_string
 				], unicode, utf8),
-			  	e_mail:send({<<"test@test.com">>, [<<"olan-ol@yandex.ru">>],Email_body}),
+			  	e_mail:send({<<"test@test.com">>, [Email],Email_body}),
 				{ok, Email};
-			{atomic,{already_exist,_}} -> {false, already_exist}
+			{error,{error,_,<<"23505">>, _, _}} ->
+        			%% Если пользователь уже существует
+			{false, already_exist}
 		end.
-
-%% @doc Получить пользователя по его мейлу
-%% @spec( get(Email:: [ binary()] ) -> not_exist | binary() ).
-   -spec( get_(Email:: [binary()] ) -> not_exist | binary() ).
-
-get_([Email]) ->
-	
-%% @doc Поиск совпадения мейла 
-MPw = fun(Ne) -> 
-        mnesia:select(user,ets:fun2ms(fun(#user{email=E,name=N,password=P}) when  E =:= Ne -> {E,N,P} end))
-    end,
- 
-	{atomic,R} = mnesia:transaction(MPw,[Email]),
-        case R of
-          [] -> not_exist;
-          [{Email,User,_}] -> User
-        end.
-
-
-
-
-
-%% @doc Функция проверки пароля пользователя
-%% @spec(check_password([ binary() | number() ]) -> ok | not_exist).
-   -spec(check_password([ binary() | number() ]) -> ok | not_exist).
-
-check_password_([Email, Password]) ->
-	
-%% @doc Поиск совпадения мейла и пароля
-MPw = fun(Ne,Pw) -> 
-        mnesia:select(user,ets:fun2ms(fun(#user{email=E,name=N,password=P}) when  E =:= Ne, P =:= Pw -> {E,N,P} end))
-    end,
-	{atomic,R} = mnesia:transaction(MPw,[Email,Password]),
-        case R of
-          [] -> not_exist;
-          R -> ok
-        end.
 
 
 
 %% @doc Запись пользователя в БД
-add_bd([Email,Name,Password]) -> 
+add_bd(C,[Email,Name,Password]) -> 
+	epgsql:equery(C, "INSERT INTO users (email, name, password) VALUES ($1, $2, $3)",[Email,Name,Password]).
 
-%% Запустим БД. Если БД уже запущена - эта операция ничего не изменит.
-%% ok=mnesia:start(),
+get_(C, Email) ->
+	case epgsql:equery(C, "SELECT * FROM users WHERE email = $1",[Email]) of
+		{ok, _, []} -> not_exist;
+		{ok, _, [{_, _, User,_}]} -> User
+	end.		
 
-%% Функция записи
-Wr = fun(E,N,P) -> mnesia:write(#user{email=E,name=N,password=P}) end,
+	
 
-%% Поиск мейла
-M = fun(Ne) -> 
-        mnesia:select(user,ets:fun2ms(fun(#user{email=E,name=N,password=P}) when  E =:= Ne -> {E,N,P} end))
-    end,
 
-%% Функция добавления пользователя с проверкой уникальности
-Add = fun(E,N,P) ->
-       		 {atomic,R} = mnesia:transaction(M,[E]),
-        case R of
-          [] -> mnesia:transaction(Wr,[E,N,P]);
-          R -> {already_exist,R}
-        end
-       end,
-%% 
-mnesia:transaction(Add,[Email,Name,Password]).
+
 
 
 
