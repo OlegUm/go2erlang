@@ -39,15 +39,13 @@ init([]) ->
 	io:format("init. Connect = ~p~n",[C]),
 	{ok, C}.
 
-%%handle_call({reset_all}, _From, State) ->
-%%		Reply= reset_all_(),
-%%		{reply, Reply, State};
-handle_call({add,User}, _From, State) ->		
-		Reply= add_(State ,User),
-		{reply, Reply, State};
-handle_call({get,Email}, _From, State) ->
-		Reply= get_(State, Email),
-		{reply, Reply, State}.
+
+handle_call({add,User}, _From, C) ->		
+		Reply= add_(C ,User),
+		{reply, Reply, C};
+handle_call({get,Email}, _From, C) ->
+		Reply= get_(C, Email),
+		{reply, Reply, C}.
 
 
 handle_cast(_Msg, State) ->
@@ -101,12 +99,3 @@ get_(C, Email) ->
 		{ok, _, []} -> not_exist;
 		{ok, _, [{_, _, User,_}]} -> User
 	end.		
-
-	
-
-
-
-
-
-
-
