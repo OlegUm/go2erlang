@@ -35,7 +35,7 @@ get(Email) -> gen_server:call(?MODULE, {get,Email}). %% Получаем пол�
 
 %% gen_server.
 init([]) ->
-	{ok,C} = epgsql:connect("localhost", "oleg", "qwerty", [{database, "users_db"}, {timeout, 4000}]),
+	C = pgsql_connection:open("users_db", "oleg", "qwerty"),
 	io:format("init. Connect = ~p~n",[C]),
 	{ok, C}.
 
@@ -63,16 +63,15 @@ code_change(_OldVsn, State, _Extra) ->
 
 
 %% @doc Добавление пользователя
-%%    @spec( add(User::[ binary() ] ) -> {false, already_exist} | {ok, binary()}  ).
-%%      -spec( add_(User::[ binary() ] ) -> {false, already_exist} | {ok, binary()}  ).
+%%    @spec( add_(User::[ binary() ] ) -> {false, already_exist} | {ok, binary()}  ).
+      -spec( add_(any(),User::[ binary() ] ) -> {false, already_exist} | {ok, binary()}  ).
 add_(C,[Email,Name]) -> 
-
 		%% Сгенерим случайный числовой пароль
 		Password=rand:uniform(100000),
 		
 		%% Добавим запись в базу
 		case add_bd(C,[Email,Name,Password]) of
-			{ok,_} -> 
+			{{insert,0,1},[]} -> 
 				%% Если пользователь новый - отсылаем mail
 				[Pass_string]=io_lib:format("~p",[Password]),		
 				Email_body = unicode:characters_to_binary([
@@ -83,7 +82,7 @@ add_(C,[Email,Name]) ->
 				], unicode, utf8),
 			  	e_mail:send({<<"test@test.com">>, [Email],Email_body}),
 				{ok, Email};
-			{error,{error,_,<<"23505">>, _, _}} ->
+			{error,{pgsql_error,[_, {code,<<"23505">>}|_Tail]}} ->
         			%% Если пользователь уже существует
 			{false, already_exist}
 		end.
@@ -92,10 +91,10 @@ add_(C,[Email,Name]) ->
 
 %% @doc Запись пользователя в БД
 add_bd(C,[Email,Name,Password]) -> 
-	epgsql:equery(C, "INSERT INTO users (email, name, password) VALUES ($1, $2, $3)",[Email,Name,Password]).
+	pgsql_connection:extended_query("INSERT INTO users (email, name, password) VALUES ($1, $2, $3)", [Email,Name,Password], C).
 
 get_(C, Email) ->
-	case epgsql:equery(C, "SELECT * FROM users WHERE email = $1",[Email]) of
-		{ok, _, []} -> not_exist;
-		{ok, _, [{_, _, User,_}]} -> User
+	case pgsql_connection:extended_query("SELECT * FROM users WHERE email = $1",[Email],C) of
+		{{select,0},[]} -> not_exist;
+		{{select,1},[{_,_,User,_}]} -> User
 	end.		
