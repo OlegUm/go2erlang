@@ -21,7 +21,8 @@
 %% экспорт функций API модуля
 -export([	
 		add/1,
-		get/1
+		get/1,
+		verify_password/2
 	]).
 
 
@@ -46,7 +47,9 @@ handle_call({add,User}, _From, C) ->
 handle_call({get,Email}, _From, C) ->
 		Reply= get_(C, Email),
 		{reply, Reply, C}.
-
+handle_call({verify_password,Email,Password}, _From, C) ->
+		Reply= verify_password_(C, Email, Password),
+		{reply, Reply, C}.
 
 handle_cast(_Msg, State) ->
 	{noreply, State}.
@@ -97,4 +100,10 @@ get_(C, Email) ->
 	case pgsql_connection:extended_query("SELECT * FROM users WHERE email = $1",[Email],C) of
 		{{select,0},[]} -> not_exist;
 		{{select,1},[{_,_,User,_}]} -> User
+	end.
+
+verify_password_(C, Email,Password) ->
+	case pgsql_connection:extended_query("SELECT * FROM users WHERE email = $1 and password = $1",[Email,Password],C) of
+		{{select,0},[]} -> not_exist;
+		{{select,1},[_]} -> ok
 	end.		
