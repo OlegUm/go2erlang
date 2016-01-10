@@ -6,7 +6,7 @@
 
 init(Req, Opts) ->
     {ok, HTML} = index_dtl:render([]),
-    Req2 = cowboy_req:reply(200,
+ 	Req2 = cowboy_req:reply(200,
         [{<<"content-type">>, <<"text/html">>}],
         HTML,
         Req),

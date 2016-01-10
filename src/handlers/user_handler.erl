@@ -4,6 +4,8 @@
 -export([content_types_provided/2]).
 -export([allowed_methods/2]).
 -export([user/2]).
+-export([is_authorized/2]).
+
 
 
 init(Req, Opts) ->
@@ -21,6 +23,15 @@ content_types_provided(Req, State) ->
 %% методы с которыми работает контроллер
 allowed_methods(Req, State) ->
 	{[<<"GET">>, <<"POST">>], Req, State}.
+
+%% проверяем, авторизован ли пользователь
+is_authorized(Req, State) ->
+	{Value, Req2} = cowboy_session:get(<<"authorized">>, Req),
+	case Value of
+		1 -> {true, Req2, State};
+		_ -> {{false, <<"401 Unauthorized">>}, Req2, State}
+	end.
+
 
 %% открываем форму регистрации пользователя
  user(Req, State) ->

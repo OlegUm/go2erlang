@@ -2,4 +2,5 @@
 {% block content %}
     <p> Hello world!</p>
     <p> <a href="/user/create">Форма регистрации пользователя</a></p>
+
 {% endblock %}
