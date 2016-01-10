@@ -22,7 +22,7 @@
 -export([	
 		add/1,
 		get/1,
-		verify_password/2
+		verify_password/1
 	]).
 
 
@@ -32,6 +32,7 @@ start_link() -> gen_server:start_link({local,?MODULE},?MODULE, [],[]).
 
 add(User) -> gen_server:call(?MODULE, {add,User}). %% Добавляем пользователя в базу
 get(Email) -> gen_server:call(?MODULE, {get,Email}). %% Получаем пользователя из базы по его мейлу
+verify_password(EmailPassword) -> gen_server:call(?MODULE, {verify_password,EmailPassword}). %% Проверяем пароль
 
 
 %% gen_server.
@@ -46,9 +47,9 @@ handle_call({add,User}, _From, C) ->
 		{reply, Reply, C};
 handle_call({get,Email}, _From, C) ->
 		Reply= get_(C, Email),
-		{reply, Reply, C}.
-handle_call({verify_password,Email,Password}, _From, C) ->
-		Reply= verify_password_(C, Email, Password),
+		{reply, Reply, C};
+handle_call({verify_password,EmailPassword}, _From, C) ->
+		Reply= verify_password_(C, EmailPassword),
 		{reply, Reply, C}.
 
 handle_cast(_Msg, State) ->
@@ -102,8 +103,10 @@ get_(C, Email) ->
 		{{select,1},[{_,_,User,_}]} -> User
 	end.
 
-verify_password_(C, Email,Password) ->
-	case pgsql_connection:extended_query("SELECT * FROM users WHERE email = $1 and password = $1",[Email,Password],C) of
+verify_password_(C, EmailPassword) ->
+	[Email,Password]=EmailPassword,
+	EmailPassword2=[Email,binary_to_integer(Password)],
+	case pgsql_connection:extended_query("SELECT * FROM users WHERE email = $1 AND password = $2",EmailPassword2,C) of
 		{{select,0},[]} -> not_exist;
 		{{select,1},[_]} -> ok
 	end.		

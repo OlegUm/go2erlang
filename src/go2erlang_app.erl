@@ -26,9 +26,14 @@ stop(_State) ->
 
 
 error_hook(401, Headers, <<>>, Req) ->
-	Body = login_dtl:render([]),
+	io:format("Error 401 ...~n"), %% debug
+	{ok,Body} = login_dtl:render([]),
+	io:format("Body =  ...~p~n",[Body]), %% debug
+	SizeBody=iolist_size(Body), % debug
+	io:format("SizeBody ...~p~n",[SizeBody]), %% debug
 	Headers2 = lists:keyreplace(<<"content-length">>, 1, Headers,
-		{<<"content-length">>, integer_to_list(iolist_size(Body))}),
+		{<<"content-length">>, integer_to_list(SizeBody)}),
+	io:format("Headers2 ...~p~n",[Headers2]), %% debug
 	cowboy_req:reply(200, Headers2, Body, Req);
 error_hook(404, Headers, <<>>, Req) ->
 	Path = cowboy_req:path(Req),
