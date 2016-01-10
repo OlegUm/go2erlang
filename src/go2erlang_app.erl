@@ -24,6 +24,12 @@ stop(_State) ->
 	ok.
 
 
+
+error_hook(401, Headers, <<>>, Req) ->
+	Body = login_dtl:render([]),
+	Headers2 = lists:keyreplace(<<"content-length">>, 1, Headers,
+		{<<"content-length">>, integer_to_list(iolist_size(Body))}),
+	cowboy_req:reply(200, Headers2, Body, Req);
 error_hook(404, Headers, <<>>, Req) ->
 	Path = cowboy_req:path(Req),
 	Body = ["404 Not Found: \"", Path,

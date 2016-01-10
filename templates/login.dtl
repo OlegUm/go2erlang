@@ -1,0 +1,18 @@
+{% extends "body.dtl" %}
+
+
+{% block content %}
+    
+{% if already_exist  %}
+   <p>{{ already_exist }}</p>
+{% else %}
+    <form method="POST">      
+	<p><strong>Логин:</strong> 
+   		 <input maxlength="25" size="40" name="login"></p>
+   	<p><strong>Пароль:</strong> 
+   		 <input type="password" maxlength="25" size="40" name="password"></p>
+        <p><input type="submit" value="Enter"></p>
+    </form>
+{% endif %}
+
+{% endblock %}
