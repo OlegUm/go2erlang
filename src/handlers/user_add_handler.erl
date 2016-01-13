@@ -7,6 +7,7 @@
 -export([create_user/2]).
 -export([reg_form/2]).
 
+-include("debug.hrl").
 
 init(Req, Opts) ->
 	{cowboy_rest, Req, Opts}.

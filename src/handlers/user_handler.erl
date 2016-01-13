@@ -8,6 +8,7 @@
 -export([is_authorized/2]).
 -export([post_user/2]).
 
+-include("debug.hrl").
 
 
 init(Req, Opts) ->
@@ -37,9 +38,14 @@ allowed_methods(Req, State) ->
 is_authorized(Req, State) ->	
 	{ok, PostVals, Req2} = cowboy_req:body_qs(Req), %% Выделяем запрос
 	EmailPassword= [ V || Key <- [<<"email">>,<<"password">>], {K, V} <- PostVals, K =:= Key ],
+
+	?DBG("EmailPassword=~p~n",EmailPassword), 	
+
 	case EmailPassword of
 		[_|_] ->   %% Если в запросе есть логин-пароль
+			?DBG("~n",""), 	
 			WfP= users:verify_password(EmailPassword),
+			?DBG("~n",""), 
 			case WfP of
 				ok -> 
 					{ok,Req3}=cowboy_session:set(<<"authorized">>,1, Req2),
