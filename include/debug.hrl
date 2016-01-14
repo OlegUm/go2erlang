@@ -32,11 +32,14 @@
 
 -export([format_utc_timestamp/0]).
 
+-define(DBG_2,2).
+
 format_utc_timestamp() ->
     TS = {_,_,Micro} = os:timestamp(),
     {_,{Hour,Minute,Second}} = 
 	calendar:now_to_universal_time(TS),
     io:format("~2w:~2..0w:~2..0w.~6..0w", [Hour,Minute,Second,Micro]).
+
 
 
 
